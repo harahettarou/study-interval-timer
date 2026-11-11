@@ -25,6 +25,7 @@ let token = saved.token ?? null;
 let registration;
 let publicKey;
 let busy = false;
+let revision = 0;
 let audio;
 
 function store() {
@@ -115,6 +116,7 @@ function chime() {
 
 async function run(action) {
   if (busy) return;
+  revision += 1;
   busy = true;
   say();
   render();
@@ -196,8 +198,9 @@ testNotify.addEventListener('click', () => void run(async () => {
 function sync() {
   if (!token || busy || document.hidden) return;
   const currentToken = token;
+  const currentRevision = revision;
   void api('state').then((result) => {
-    if (busy || currentToken !== token) return;
+    if (busy || currentToken !== token || currentRevision !== revision) return;
     timer = result.timer;
     if (timer) {
       focusInput.value = timer.focus;

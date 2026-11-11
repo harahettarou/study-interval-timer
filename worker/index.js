@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import { advance, createTimer, pause, resume, transitionNotice, validMinutes } from '../docs/timer.js';
-import { fromBase64, sendPush } from './push.js';
+import { fromBase64, sendPush, signAuthorization } from './push.js';
 
 const error = (message, status = 400) => ({ status, body: { error: message } });
 const ok = (body) => ({ status: 200, body });
@@ -100,7 +100,7 @@ export class TimerSession extends DurableObject {
         return ok({ enabled: true });
       }
       if (action === 'disable') {
-        await transaction.delete('state');
+        await transaction.delete(['state', 'authorization']);
         await transaction.deleteAlarm();
         return ok({ enabled: false });
       }
@@ -153,7 +153,19 @@ export class TimerSession extends DurableObject {
 
   async deliver(subscription, notice) {
     let status;
-    try { status = await sendPush(subscription, notice, this.env); }
+    try {
+      const origin = new URL(subscription.endpoint).origin;
+      const authorization = await this.ctx.storage.transaction(async (transaction) => {
+        const now = Math.floor(Date.now() / 1000);
+        const cached = await transaction.get('authorization');
+        if (cached?.origin === origin && cached.expires > now + 3600) return cached.value;
+        const expires = now + 12 * 3600;
+        const value = await signAuthorization(origin, expires, this.env);
+        await transaction.put('authorization', { origin, expires, value });
+        return value;
+      });
+      status = await sendPush(subscription, notice, authorization);
+    }
     catch { status = 503; }
     if (status === 404 || status === 410) {
       await this.ctx.storage.transaction(async (transaction) => {

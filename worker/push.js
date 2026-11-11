@@ -42,11 +42,11 @@ async function encrypt(subscription, notice) {
   return join(salt, Uint8Array.of(0, 0, 16, 0, sender.length), sender, new Uint8Array(ciphertext));
 }
 
-async function authorization(endpoint, env) {
+export async function signAuthorization(origin, expires, env) {
   const headers = toBase64(encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' })));
   const claims = toBase64(encode(JSON.stringify({
-    aud: new URL(endpoint).origin,
-    exp: Math.floor(Date.now() / 1000) + 12 * 3600,
+    aud: origin,
+    exp: expires,
     sub: env.SITE_URL,
   })));
   const unsigned = headers + '.' + claims;
@@ -55,12 +55,12 @@ async function authorization(endpoint, env) {
   return `vapid t=${unsigned}.${toBase64(new Uint8Array(signature))}, k=${env.VAPID_PUBLIC_KEY}`;
 }
 
-export async function sendPush(subscription, notice, env) {
-  const [body, vapid] = await Promise.all([encrypt(subscription, notice), authorization(subscription.endpoint, env)]);
+export async function sendPush(subscription, notice, authorization) {
+  const body = await encrypt(subscription, notice);
   const response = await fetch(subscription.endpoint, {
     method: 'POST', redirect: 'error', signal: AbortSignal.timeout(8_000), body,
     headers: {
-      Authorization: vapid, 'Content-Encoding': 'aes128gcm', 'Content-Type': 'application/octet-stream',
+      Authorization: authorization, 'Content-Encoding': 'aes128gcm', 'Content-Type': 'application/octet-stream',
       TTL: '45', Urgency: 'high', Topic: notice.tag,
     },
   });
