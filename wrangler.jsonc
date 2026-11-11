@@ -1,0 +1,11 @@
+{
+  "name": "study-interval-timer",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-11",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": true, "traces": { "enabled": true, "head_sampling_rate": 0.1 } },
+  "durable_objects": { "bindings": [{ "name": "TIMERS", "class_name": "TimerSession" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["TimerSession"] }],
+  "vars": { "SITE_URL": "https://harahettarou.github.io/study-interval-timer/" }
+}

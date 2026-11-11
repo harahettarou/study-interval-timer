@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#172238">
+  <meta name="color-scheme" content="light">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <title>集中タイマー</title>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="top"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="13" r="8"/><path d="M12 13V8m-3-6h6m3 4 2-2"/></svg><h1>集中タイマー</h1></header>
+  <main>
+    <section class="clock" aria-label="タイマー">
+      <div class="sequence"><span id="focus-tab" aria-current="step">集中</span><span aria-hidden="true">⇄</span><span id="break-tab">休憩</span></div>
+      <div class="dial">
+        <svg aria-hidden="true" viewBox="0 0 240 240"><circle class="track" cx="120" cy="120" r="110"/><circle id="progress" cx="120" cy="120" r="110" pathLength="100" transform="rotate(-90 120 120)"/></svg>
+        <div class="readout"><div id="phase" role="status">集中</div><div id="remaining" role="timer" aria-label="残り時間">50:00</div><div id="next">次は休憩 · 10分</div></div>
+      </div>
+      <div class="controls"><button id="toggle" type="submit" form="settings" class="primary">スタート</button><button id="reset" type="button">リセット</button></div>
+    </section>
+    <form id="settings" class="panel">
+      <h2>時間設定</h2>
+      <div class="times">
+        <label for="focus">集中時間 <span><input id="focus" type="number" inputmode="numeric" min="1" max="180" step="1" value="50" required>分</span></label>
+        <label for="break">休憩時間 <span><input id="break" type="number" inputmode="numeric" min="1" max="180" step="1" value="10" required>分</span></label>
+      </div>
+    </form>
+    <section class="panel notifications" aria-labelledby="notify-heading">
+      <div><h2 id="notify-heading">切り替え通知</h2><p id="notify-note">画面を閉じても通知を受け取れます。</p></div>
+      <button id="notify" type="button" aria-describedby="notify-note">通知をオン</button>
+      <button id="test-notify" type="button" hidden>テスト通知</button>
+      <p id="message" role="status" hidden></p>
+    </section>
+  </main>
+</body>
+</html>
