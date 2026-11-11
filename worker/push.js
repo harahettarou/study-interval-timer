@@ -58,7 +58,7 @@ export async function signAuthorization(origin, expires, env) {
 export async function sendPush(subscription, notice, authorization) {
   const body = await encrypt(subscription, notice);
   const response = await fetch(subscription.endpoint, {
-    method: 'POST', redirect: 'error', signal: AbortSignal.timeout(8_000), body,
+    method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(8_000), body,
     headers: {
       Authorization: authorization, 'Content-Encoding': 'aes128gcm', 'Content-Type': 'application/octet-stream',
       TTL: '45', Urgency: 'high', Topic: notice.tag,

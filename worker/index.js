@@ -153,6 +153,7 @@ export class TimerSession extends DurableObject {
 
   async deliver(subscription, notice) {
     let status;
+    let stage = 'authorization';
     try {
       const origin = new URL(subscription.endpoint).origin;
       const authorization = await this.ctx.storage.transaction(async (transaction) => {
@@ -164,9 +165,13 @@ export class TimerSession extends DurableObject {
         await transaction.put('authorization', { origin, expires, value });
         return value;
       });
+      stage = 'delivery';
       status = await sendPush(subscription, notice, authorization);
     }
-    catch { status = 503; }
+    catch (problem) {
+      console.warn('push_delivery_error', { stage, name: problem.name });
+      status = 503;
+    }
     if (status === 404 || status === 410) {
       await this.ctx.storage.transaction(async (transaction) => {
         const state = await transaction.get('state');
